@@ -13,4 +13,19 @@ C'est le fichier `src/controllers/order_saga_controller.py` qui est responsable 
 
 ![Question 1 image 1](./images/1.1.png)
 
+### Question 2
+####  Lequel de ces fichiers Python déclenche la création ou suppression des commandes? Est-ce qu'il accède à une base de données directement pour le faire? Illustrez votre réponse avec des extraits de code.
+
+C'est le fichier `src/handlers/create_order_handler.py` qui est response de la création ou supression des commandes. Celui-ci n'accède pas à une base de données, il envoie plutôt une requête HTTP vers `store_manager` qui est responsable de la persistence des données des commandes. Selon le patron saga, l'orchestreur ne fait que coordoner les différents services en leur envoyant des requêtes, c'est le concept d'une transaction distribuée.
+
+![Question 2 image 1](./images/2.1.png)
+
+### Question 3
+#### Quelle requête dans la collection Postman du Labo 05 correspond à l'endpoint appelé dans create_order_handler.py? Illustrez votre réponse avec des captures d'écran ou extraits de code.
+
+L'endpoint appelé par la requête dans `create_order_handler.py` est `/order` avec la méthode POST, qui dans la collection Postman correspond à `{{baseURL}}/orders` comme on peut le voir dans l'image ci-dessous.
+
+![Question 3 image 1](./images/3.1.png)
+
+
 ## Observations additionnelles
