@@ -27,5 +27,21 @@ L'endpoint appelé par la requête dans `create_order_handler.py` est `/order` a
 
 ![Question 3 image 1](./images/3.1.png)
 
+### Question 4
+#### Quel endpoint avez-vous appelé pour modifier le stock? Quelles informations de la commande avez-vous utilisées? Illustrez votre réponse avec des extraits de code.
+
+J'ai appelé l'endpoint `/stocks` avec la méthode `PUT`. Pour la fonction `run` comme la fonction `rollback` je passe la liste des items, cependant dans le premier cas je passe "-" comme opération, et "-" dans le second cas. Ces paramètres ont été déterminés avec l'endpoint présent dans la collection Postman ci-dessous.
+
+![Question 4 image 1](./images/4.1.png)
+
+À noter que pour que la saga fonctionne, j'ai completé le code manquant dans `src/controllers/order_saga_controller.py`. La classe `CreatePaymentHandler` n'étant pas implémenté, elle retourne présentement toujours un succès. 
+
+![Question 4 image 2](./images/4.2.png)
+
+Dans Postman on peut voir que la saga retourne un code 200 ce qui signifie qu'elle a bien été exécuté avec succès. 
+
+![Question 4 image 3](./images/4.3.png)
+
+
 
 ## Observations additionnelles

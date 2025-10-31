@@ -3,6 +3,7 @@ Handler: decrease stock
 SPDX - License - Identifier: LGPL - 3.0 - or -later
 Auteurs : Gabriel C. Ullmann, Fabio Petrillo, 2025
 """
+import config
 import requests
 from logger import Logger
 from handlers.handler import Handler
@@ -19,20 +20,19 @@ class DecreaseStockHandler(Handler):
     def run(self):
         """Call StoreManager to check out from stock"""
         try:
-            # TODO: effectuer une requête à /stocks pour modifier le stock
-            """
-            POST my-api-gateway-address/stocks ...
-            json={
+            json_order_data = {
                     "items": self.order_item_data,
                     "operation": "-"
-                },
-            """
-            response_ok = True
-            if response_ok:
+            }
+            response = requests.put(f'{config.API_GATEWAY_URL}/store-manager-api/stocks',
+                json=json_order_data,
+                headers={'Content-Type': 'application/json'}
+            )
+            if response.ok:
                 self.logger.debug("La sortie des articles du stock a réussi")
                 return OrderSagaState.CREATING_PAYMENT
             else:
-                self.logger.error(f"Erreur : {response_ok}")
+                self.logger.error(f"Erreur : {response.status_code} : {response.json()}")
                 return OrderSagaState.CANCELLING_ORDER
             
         except Exception as e:
@@ -41,6 +41,22 @@ class DecreaseStockHandler(Handler):
         
     def rollback(self):
         """ Call StoreManager to revert stock check out (in other words, check-in the previously checked-out product and quantity) """
-        # TODO: effectuer une requête à /stocks pour modifier le stock
-        self.logger.debug("L'entrée des articles dans le stock a réussi")
-        return OrderSagaState.CANCELLING_ORDER
+        try:
+            json_order_data = {
+                    "items": self.order_item_data,
+                    "operation": "+"
+            }
+            response = requests.put(f'{config.API_GATEWAY_URL}/store-manager-api/stocks',
+                json=json_order_data,
+                headers={'Content-Type': 'application/json'}
+            )
+            if response.ok:
+                self.logger.debug("L'entrée des articles dans le stock a réussi")
+                return OrderSagaState.CREATING_PAYMENT
+            else:
+                self.logger.error(f"Erreur : {response.status_code} : {response.json()}")
+                return OrderSagaState.CANCELLING_ORDER
+            
+        except Exception as e:
+            self.logger.error("L'entrée des articles dans le stock a échoué : " + str(e))
+            return OrderSagaState.CANCELLING_ORDER

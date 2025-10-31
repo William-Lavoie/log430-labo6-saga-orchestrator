@@ -3,6 +3,7 @@ Handler: create payment transaction
 SPDX - License - Identifier: LGPL - 3.0 - or -later
 Auteurs : Gabriel C. Ullmann, Fabio Petrillo, 2025
 """
+import config
 import requests
 from logger import Logger
 from handlers.handler import Handler
@@ -15,28 +16,40 @@ class CreatePaymentHandler(Handler):
         """ Constructor method """
         self.order_id = order_id
         self.order_data = order_data
+        self.user_id = 0
         self.total_amount = 0
         super().__init__()
 
     def run(self):
         """Call payment microservice to generate payment transaction"""
         try:
-            # TODO: effectuer une requête à /orders pour obtenir le total_amount de la commande (que sera utilisé pour démander la transaction de paiement)
-            """
-            GET my-api-gateway-address/order/{id} ...
-            """
-
-            # TODO: effectuer une requête à /payments pour créer une transaction de paiement
-            """
-            POST my-api-gateway-address/payments ...
-            json={ voir collection Postman pour en savoir plus ... }
-            """
-            response_ok = True
-            if response_ok:
+            response = requests.get(f'{config.API_GATEWAY_URL}/store-manager-api/orders/{self.order_id}',
+                headers={'Content-Type': 'application/json'}
+            )
+            if response.ok:
+                data = response.json() 
+                self.total_amount = data.get("order_id", 0)
+                self.user_id = data.get("user_id", 0)
+                self.logger.debug("La création de la commande a réussi")
+            else:
+                text = response.json() 
+                self.logger.error(f"Erreur {response.status_code} : {text}")
+                return OrderSagaState.COMPLETED
+            
+            json_payment_data = {
+                "user_id": self.user_id,
+                "order_id": self.order_id,
+                "total_amount": self.total_amount
+            }
+            response = requests.post(f'{config.API_GATEWAY_URL}/payments_api/payments',
+                json=json_payment_data,
+                headers={'Content-Type': 'application/json'}
+            )
+            if response.ok:
                 self.logger.debug("La création d'une transaction de paiement a réussi")
                 return OrderSagaState.COMPLETED
             else:
-                self.logger.error(f"Erreur : {response_ok}")
+                self.logger.error(f"Erreur : {response.ok}")
                 return OrderSagaState.INCREASING_STOCK
 
         except Exception as e:

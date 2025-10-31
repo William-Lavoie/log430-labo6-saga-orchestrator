@@ -29,14 +29,20 @@ class OrderSagaController(Controller):
             "items": payload.get('items', [])
         }
         self.create_order_handler = CreateOrderHandler(order_data)
+        self.decrease_stock_handler = DecreaseStockHandler(order_data["items"])
+        self.create_payment_handler = CreatePaymentHandler(order_id=order_data["user_id"], order_data=order_data)
 
         while self.current_saga_state is not OrderSagaState.COMPLETED:
-            # TODO: vérifier TOUS les 6 états saga. Utilisez run() ou rollback() selon les besoins.
             if self.current_saga_state == OrderSagaState.CREATING_ORDER:
                 self.current_saga_state = self.create_order_handler.run()
+            elif self.current_saga_state == OrderSagaState.CANCELLING_ORDER:
+                self.current_saga_state = self.create_order_handler.rollback()
+            elif self.current_saga_state == OrderSagaState.INCREASING_STOCK:
+                self.current_saga_state = self.decrease_stock_handler.rollback()
             elif self.current_saga_state == OrderSagaState.DECREASING_STOCK:
-                self.increase_stock_handler = DecreaseStockHandler(order_data["items"])
-                self.current_saga_state = self.increase_stock_handler.run()
+                self.current_saga_state = self.decrease_stock_handler.run()
+            elif self.current_saga_state == OrderSagaState.CREATING_PAYMENT:
+                self.current_saga_state = self.create_payment_handler.run()
             else:
                 self.is_error_occurred = True
                 self.logger.debug(f"L'état saga n'est pas valide : {self.current_saga_state}")
