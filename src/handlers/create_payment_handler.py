@@ -30,7 +30,7 @@ class CreatePaymentHandler(Handler):
                 data = response.json() 
                 self.total_amount = data.get("order_id", 0)
                 self.user_id = data.get("user_id", 0)
-                self.logger.debug("La création de la commande a réussi")
+                self.logger.debug("La création du paiement a réussi")
             else:
                 text = response.json() 
                 self.logger.error(f"Erreur {response.status_code} : {text}")

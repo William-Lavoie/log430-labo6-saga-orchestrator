@@ -52,7 +52,7 @@ class DecreaseStockHandler(Handler):
             )
             if response.ok:
                 self.logger.debug("L'entrée des articles dans le stock a réussi")
-                return OrderSagaState.CREATING_PAYMENT
+                return OrderSagaState.CANCELLING_ORDER
             else:
                 self.logger.error(f"Erreur : {response.status_code} : {response.json()}")
                 return OrderSagaState.CANCELLING_ORDER
