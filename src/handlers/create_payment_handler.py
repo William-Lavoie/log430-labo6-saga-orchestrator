@@ -41,7 +41,7 @@ class CreatePaymentHandler(Handler):
                 "order_id": self.order_id,
                 "total_amount": self.total_amount
             }
-            response = requests.post(f'{config.API_GATEWAY_URL}/payments_api/payments',
+            response = requests.post(f'{config.API_GATEWAY_URL}/payments-api/payments',
                 json=json_payment_data,
                 headers={'Content-Type': 'application/json'}
             )
