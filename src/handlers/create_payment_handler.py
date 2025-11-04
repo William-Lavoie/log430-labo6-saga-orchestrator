@@ -49,7 +49,7 @@ class CreatePaymentHandler(Handler):
                 self.logger.debug("La création d'une transaction de paiement a réussi")
                 return OrderSagaState.COMPLETED
             else:
-                self.logger.error(f"Erreur : {response.ok}")
+                self.logger.error(f"Erreur : {response.text}")
                 return OrderSagaState.INCREASING_STOCK
 
         except Exception as e:
