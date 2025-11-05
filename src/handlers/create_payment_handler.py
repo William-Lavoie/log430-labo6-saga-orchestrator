@@ -12,7 +12,7 @@ from order_saga_state import OrderSagaState
 class CreatePaymentHandler(Handler):
     """ Handle the creation of a payment transaction for a given order. Trigger rollback of previous steps in case of failure. """
 
-    def __init__(self, order_id, order_data):
+    def __init__(self, order_data, order_id = 0):
         """ Constructor method """
         self.order_id = order_id
         self.order_data = order_data
@@ -27,15 +27,14 @@ class CreatePaymentHandler(Handler):
                 headers={'Content-Type': 'application/json'}
             )
             if response.ok:
-                data = response.json() 
-                self.total_amount = data.get("order_id", 0)
+                data = response.json()
+                self.total_amount = data.get("total_amount", 0)
                 self.user_id = data.get("user_id", 0)
-                self.logger.debug("La création du paiement a réussi")
             else:
-                text = response.json() 
+                text = response.json()
                 self.logger.error(f"Erreur {response.status_code} : {text}")
                 return OrderSagaState.COMPLETED
-            
+
             json_payment_data = {
                 "user_id": self.user_id,
                 "order_id": self.order_id,
@@ -49,13 +48,13 @@ class CreatePaymentHandler(Handler):
                 self.logger.debug("La création d'une transaction de paiement a réussi")
                 return OrderSagaState.COMPLETED
             else:
-                self.logger.error(f"Erreur : {response.text}")
+                self.logger.error(f"La création d'une transaction de paiement a échoué: {response.text}")
                 return OrderSagaState.INCREASING_STOCK
 
         except Exception as e:
             self.logger.error("La création d'une transaction de paiement a échoué : " + str(e))
             return OrderSagaState.INCREASING_STOCK
-        
+
     def rollback(self):
         """Call payment microservice to delete payment transaction"""
         # ATTENTION: Nous pourrions utiliser cette méthode si nous avions des étapes supplémentaires, mais ce n'est pas le cas actuellement, elle restera donc INUTILISÉE.
